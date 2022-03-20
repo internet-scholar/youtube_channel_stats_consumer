@@ -142,6 +142,7 @@ class YoutubeChannelStatsConsumer:
                                 else:
                                     raise
                         if quota_exceeded:
+                            channels.append(channel)
                             channels_queue.send_message(MessageBody=json.dumps(channels))
                             instantiate_ec2(key_name=self.key_name,
                                             security_group=self.security_group,
