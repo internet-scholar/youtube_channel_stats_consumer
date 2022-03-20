@@ -13,10 +13,21 @@ from socket import error as SocketError
 import errno
 
 class YoutubeChannelStatsConsumer:
-    def __init__(self, athena_data, s3_admin, s3_data):
+    def __init__(self, athena_data, s3_admin, s3_data,
+                 key_name, security_group, iam, init_script,
+                 ami, instance_type, volume_size, region, name):
         self.athena_data = athena_data
         self.s3_admin = s3_admin
         self.s3_data = s3_data
+        self.key_name = key_name
+        self.security_group = security_group
+        self.iam = iam
+        self.init_script = init_script
+        self.ami = ami
+        self.instance_type = instance_type
+        self.volume_size = volume_size
+        self.region = region
+        self.name = name
 
     LOGGING_INTERVAL = 100
     WAIT_WHEN_SERVICE_UNAVAILABLE = 30
@@ -132,11 +143,15 @@ class YoutubeChannelStatsConsumer:
                                     raise
                         if quota_exceeded:
                             channels_queue.send_message(MessageBody=json.dumps(channels))
-                            instantiate_ec2(key_name="webscholar",
-                                            security_group="launch-wizard-1",
-                                            iam="ec2_internetscholar",
-                                            init_script="",
-                                            ami="ami-06f2f779464715dc5")
+                            instantiate_ec2(key_name=self.key_name,
+                                            security_group=self.security_group,
+                                            iam=self.iam,
+                                            init_script=self.init_script,
+                                            ami=self.ami,
+                                            instance_type=self.instance_type,
+                                            size=self.volume_size,
+                                            region=self.region,
+                                            name=self.name)
                         else:
                             for item in response.get('items', []):
                                 item['retrieved_at'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
@@ -199,7 +214,16 @@ def main():
     try:
         youtube_channel_stats = YoutubeChannelStatsConsumer(athena_data=config['aws']['athena-data'],
                                                             s3_admin=config['aws']['s3-admin'],
-                                                            s3_data=config['aws']['s3-data'])
+                                                            s3_data=config['aws']['s3-data'],
+                                                            key_name=config['aws']['key_name'],
+                                                            security_group=config['aws']['security_group'],
+                                                            iam=config['aws']['iam'],
+                                                            init_script=config['aws']['init_script'],
+                                                            ami=config['aws']['ami'],
+                                                            instance_type=config['aws']['instance_type'],
+                                                            volume_size=config['aws']['volume_size'],
+                                                            region=config['aws']['region'],
+                                                            name=config['aws']['name'])
         youtube_channel_stats.collect_channel_stats()
     finally:
         logger.save_to_s3()
