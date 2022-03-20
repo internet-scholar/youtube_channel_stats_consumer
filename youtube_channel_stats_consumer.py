@@ -223,7 +223,7 @@ def main():
                                                             ami=config['aws']['ami'],
                                                             instance_type=config['aws']['instance_type'],
                                                             volume_size=config['aws']['volume_size'],
-                                                            region=config['aws']['region'],
+                                                            region=config['aws']['default_region'],
                                                             name=config['aws']['name'])
         youtube_channel_stats.collect_channel_stats()
     finally:
