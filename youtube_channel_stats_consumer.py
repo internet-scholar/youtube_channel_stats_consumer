@@ -15,7 +15,7 @@ import errno
 class YoutubeChannelStatsConsumer:
     def __init__(self, athena_data, s3_admin, s3_data,
                  key_name, security_group, iam, init_script,
-                 ami, instance_type, volume_size, region, name):
+                 ami, instance_type, volume_size, region, name, s3_config):
         self.athena_data = athena_data
         self.s3_admin = s3_admin
         self.s3_data = s3_data
@@ -28,6 +28,7 @@ class YoutubeChannelStatsConsumer:
         self.volume_size = volume_size
         self.region = region
         self.name = name
+        self.s3_config = s3_config
 
     LOGGING_INTERVAL = 100
     WAIT_WHEN_SERVICE_UNAVAILABLE = 30
@@ -71,7 +72,7 @@ class YoutubeChannelStatsConsumer:
                     message[0].delete()
                     logging.info('Channels received!')
                     channel_count = len(channels)
-                    while len(channels) > 0:
+                    while len(channels) > 0 and not quota_exceeded:
                         channel = channels.pop()
                         num_channels = 0
                         if num_channels % self.LOGGING_INTERVAL == 0:
@@ -152,7 +153,8 @@ class YoutubeChannelStatsConsumer:
                                             instance_type=self.instance_type,
                                             size=self.volume_size,
                                             region=self.region,
-                                            name=self.name)
+                                            name=self.name,
+                                            parameters=self.s3_config)
                         else:
                             for item in response.get('items', []):
                                 item['retrieved_at'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
@@ -224,7 +226,8 @@ def main():
                                                             instance_type=config['aws']['instance_type'],
                                                             volume_size=config['aws']['volume_size'],
                                                             region=config['aws']['default_region'],
-                                                            name=config['aws']['name'])
+                                                            name=config['aws']['name'],
+                                                            s3_config=args.config)
         youtube_channel_stats.collect_channel_stats()
     finally:
         logger.save_to_s3()
