@@ -42,7 +42,7 @@ class YoutubeChannelStatsConsumer:
         if len(message) == 0:
             raise Exception('No more credentials')
         else:
-            credential = json.loads(message[0].body)
+            credential = message[0].body
             message[0].delete()
             logging.info('Credential received!')
 
