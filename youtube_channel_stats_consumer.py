@@ -61,6 +61,7 @@ class YoutubeChannelStatsConsumer:
         quota_exceeded = False
         channels_queue = sqs.get_queue_by_name(QueueName='youtube_channels')
 
+        num_channels = 0
         output_json = Path(Path(__file__).parent, 'tmp', 'youtube_channel_stats.json')
         try:
             with open(output_json, 'w') as json_writer:
@@ -75,7 +76,6 @@ class YoutubeChannelStatsConsumer:
                         channel_count = len(channels)
                         while len(channels) > 0 and not quota_exceeded:
                             channel = channels.pop()
-                            num_channels = 0
                             if num_channels % self.LOGGING_INTERVAL == 0:
                                 logging.info("%d out of %d channels processed", num_channels, channel_count)
                             num_channels = num_channels + 1
