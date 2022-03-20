@@ -71,7 +71,7 @@ class YoutubeChannelStatsConsumer:
                     message[0].delete()
                     logging.info('Channels received!')
                     channel_count = len(channels)
-                    while len(channels) != 0:
+                    while len(channels) > 0:
                         channel = channels.pop()
                         num_channels = 0
                         if num_channels % self.LOGGING_INTERVAL == 0:
